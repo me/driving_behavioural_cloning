@@ -6,35 +6,16 @@ import os
 import argparse
 import json
 import csv
-import matplotlib.image as mpimg
 import numpy as np
-import cv2
+from data import gen
+
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten, Lambda, ELU
 from keras.layers.convolutional import Convolution2D
 
-def process_img(img):
-  dim = (160,80)
-  img = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
-  img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-  img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-  img = img.reshape(img.shape  + (1,))
-  img = img/255.
-  return img
-
-def gen(driving_log):
-  print(driving_log.shape)
-  while 1:
-
-    for i in range(len(driving_log)):
-      center,left,right,steering,throttle,brake,speed = driving_log[i]
-      center_img = mpimg.imread('data/'+center)
-      img = process_img(center_img)
-      yield np.array([img]), np.array([steering])
-
 
 def get_model(time_len=1):
-  ch, row, col = 1, 80, 160  # input format
+  ch, row, col = 3, 80, 160  # input format
 
   model = Sequential()
   model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same", input_shape=(row, col, ch)))
@@ -100,6 +81,8 @@ if __name__ == "__main__":
   if not os.path.exists("./outputs/steering_model"):
       os.makedirs("./outputs/steering_model")
 
-  model.save_weights("./outputs/steering_model/steering_angle.keras", True)
+  model.save_weights("./outputs/steering_model/steering_angle.h5", True)
   with open('./outputs/steering_model/steering_angle.json', 'w') as outfile:
     json.dump(model.to_json(), outfile)
+
+  import gc; gc.collect()

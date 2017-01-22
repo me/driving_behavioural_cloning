@@ -7,6 +7,7 @@ import socketio
 import eventlet
 import eventlet.wsgi
 import time
+from data import process_img
 from PIL import Image
 from PIL import ImageOps
 from flask import Flask, render_template
@@ -20,7 +21,7 @@ import tensorflow as tf
 tf.python.control_flow_ops = tf
 
 
-sio = socketio.Server()
+sio = socketio.Server(logger=True)
 app = Flask(__name__)
 model = None
 prev_image_array = None
@@ -37,7 +38,9 @@ def telemetry(sid, data):
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     image_array = np.asarray(image)
+    image_array = process_img(image_array)
     transformed_image_array = image_array[None, :, :, :]
+    print(transformed_image_array)
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
     steering_angle = float(model.predict(transformed_image_array, batch_size=1))
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
@@ -71,7 +74,8 @@ if __name__ == '__main__':
         #   model = model_from_json(json.loads(jfile.read()))\
         #
         # instead.
-        model = model_from_json(jfile.read())
+        model = model_from_json(json.loads(jfile.read()))\
+        #model = model_from_json(jfile.read())
 
 
     model.compile("adam", "mse")
