@@ -17,9 +17,10 @@ from keras.optimizers import Adam
 
 
 def get_model(time_len=1):
-  ch, row, col = 3, 50, 160  # input format
+  ch, row, col = 3, 100, 100  # input format
 
   model = Sequential()
+
   model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same", input_shape=(row, col, ch)))
   model.add(ELU())
   model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
@@ -32,6 +33,23 @@ def get_model(time_len=1):
   model.add(Dropout(.5))
   model.add(ELU())
   model.add(Dense(1))
+
+
+  # model.add(Convolution2D(24, 5, 5, activation='relu', border_mode='valid', subsample=(2,2), input_shape=(row, col, ch)))
+  # model.add(Convolution2D(36, 5, 5, activation='relu', border_mode='valid', subsample=(2,2)))
+  # model.add(Convolution2D(48, 5, 5, activation='relu', border_mode='valid', subsample=(2,2)))
+  # model.add(Convolution2D(64, 3, 3, activation='relu', border_mode='valid', subsample=(1,1)))
+  # model.add(Convolution2D(64, 3, 3, activation='relu', border_mode='valid', subsample=(1,1)))
+  # model.add(Flatten())
+  # model.add(Dense(1164, activation='relu'))
+  # model.add(Dropout(.2))
+  # model.add(Dense(100, activation='relu'))
+  # model.add(Dropout(.5))
+  # model.add(Dense(50, activation='relu'))
+  # model.add(Dropout(.5))
+  # model.add(Dense(10, activation='relu'))
+  # model.add(Dropout(.5))
+  # model.add(Dense(1))
 
   optimizer = Adam(lr=0.001)
   model.compile(optimizer=optimizer, loss="mse")
