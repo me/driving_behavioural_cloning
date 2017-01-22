@@ -12,19 +12,30 @@ def process_img(img):
   img = img/255.
   return img
 
-def gen_data(driving_log):
+def gen_data(driving_log, batch_size=64, augment=True):
   camera_offset = 0.25
+  batch_images = []
+  batch_angles = []
+  size = len(driving_log)
   while 1:
-    for i in range(len(driving_log)):
+    cnt = 0
+    for i in range(size):
+      cnt += 1
       center,left,right,steering,throttle,brake,speed = driving_log[i]
       center_img =  process_img(mpimg.imread('data/'+center.strip()))
       left_img =  process_img(mpimg.imread('data/'+left.strip()))
       right_img =  process_img(mpimg.imread('data/'+right.strip()))
       center_steering = float(steering)
-      images = np.array([
+      images = [
         center_img, left_img, right_img
-      ])
-      angles = np.array([
+      ]
+      angles = [
         center_steering, center_steering + camera_offset, center_steering - camera_offset
-      ])
-      yield images, angles
+      ]
+      batch_images = batch_images + images
+      batch_angles = batch_angles + angles
+      if (cnt % batch_size) == 0 or (cnt % size) == 0:
+        if len(batch_images) > 0:
+          yield np.array(batch_images), np.array(batch_angles)
+          batch_images = []
+          batch_angles = []

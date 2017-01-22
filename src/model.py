@@ -13,6 +13,7 @@ from data import gen_data
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten, Lambda, ELU
 from keras.layers.convolutional import Convolution2D
+from keras.optimizers import Adam
 
 
 def get_model(time_len=1):
@@ -32,14 +33,14 @@ def get_model(time_len=1):
   model.add(ELU())
   model.add(Dense(1))
 
-  model.compile(optimizer="adam", loss="mse")
+  optimizer = Adam(lr=0.001)
+  model.compile(optimizer=optimizer, loss="mse")
 
   return model
 
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Steering angle model trainer')
-  parser.add_argument('--batch', type=int, default=128, help='Batch size.')
   parser.add_argument('--epoch', type=int, default=5, help='Number of epochs.')
   parser.add_argument('--epochsize', type=int, default=0, help='How many frames per epoch.')
   args = parser.parse_args()
@@ -69,7 +70,7 @@ if __name__ == "__main__":
     gen_data(driving_log_train),
     samples_per_epoch=epochsize*3,
     nb_epoch=args.epoch,
-    validation_data=gen_data(driving_log_valid),
+    validation_data=gen_data(driving_log_valid, augment=False),
     nb_val_samples=len(driving_log_valid)
   )
   print("Saving model weights and configuration file.")
