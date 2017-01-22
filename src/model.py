@@ -7,6 +7,7 @@ import argparse
 import json
 import csv
 import numpy as np
+import pandas as pd
 from data import gen_data
 
 from keras.models import Sequential

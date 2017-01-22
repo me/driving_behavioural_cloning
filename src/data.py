@@ -19,4 +19,4 @@ def gen_data(driving_log):
       center,left,right,steering,throttle,brake,speed = driving_log[i]
       center_img = mpimg.imread('data/'+center)
       img = process_img(center_img)
-      yield np.array([img]), np.array([steering])
+      yield np.array([img]), np.array([float(steering)])
