@@ -7,7 +7,7 @@ import argparse
 import json
 import csv
 import numpy as np
-from data import gen
+from data import gen_data, normalize_img
 
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten, Lambda, ELU
@@ -18,6 +18,7 @@ def get_model(time_len=1):
   ch, row, col = 3, 80, 160  # input format
 
   model = Sequential()
+  model.add(Lambda(normalize_img, input_shape=(ch, row, col), output_shape=(ch, row, col)))
   model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same", input_shape=(row, col, ch)))
   model.add(ELU())
   model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
