@@ -13,10 +13,18 @@ def process_img(img):
   return img
 
 def gen_data(driving_log):
-  print(driving_log.shape)
+  camera_offset = 0.25
   while 1:
     for i in range(len(driving_log)):
       center,left,right,steering,throttle,brake,speed = driving_log[i]
-      center_img = mpimg.imread('data/'+center)
-      img = process_img(center_img)
-      yield np.array([img]), np.array([float(steering)])
+      center_img =  process_img(mpimg.imread('data/'+center.strip()))
+      left_img =  process_img(mpimg.imread('data/'+left.strip()))
+      right_img =  process_img(mpimg.imread('data/'+right.strip()))
+      center_steering = float(steering)
+      images = np.array([
+        center_img, left_img, right_img
+      ])
+      angles = np.array([
+        center_steering, center_steering + camera_offset, center_steering - camera_offset
+      ])
+      yield images, angles

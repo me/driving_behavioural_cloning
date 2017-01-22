@@ -67,7 +67,7 @@ if __name__ == "__main__":
   model = get_model()
   model.fit_generator(
     gen_data(driving_log_train),
-    samples_per_epoch=epochsize,
+    samples_per_epoch=epochsize*3,
     nb_epoch=args.epoch,
     validation_data=gen_data(driving_log_valid),
     nb_val_samples=len(driving_log_valid)
