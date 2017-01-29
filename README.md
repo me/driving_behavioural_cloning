@@ -50,3 +50,19 @@ course with a base throttle of 0.3. Maybe the data augmentation is too aggressiv
 to underfit on the first track; however, all the other techniques I tried seemed to lead to worse results.
 More experimentation would be needed on this.
 
+
+To run:
+
+```
+$ python drive.py outputs/steering_model/steering_angle.json
+```
+
+Note: for the second track, open drive.py and change BASE_THROTTLE to 0.3, or the car won't be able
+to get over the hills in the track.
+
+To retrain: place driving_log.csv and images in `data`, and run
+
+```
+$ python src/model.py
+```
+
