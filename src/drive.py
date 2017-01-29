@@ -21,10 +21,11 @@ import tensorflow as tf
 tf.python.control_flow_ops = tf
 
 
-sio = socketio.Server(logger=True)
+sio = socketio.Server(logger=False)
 app = Flask(__name__)
 model = None
 prev_image_array = None
+angles = np.array([])
 
 @sio.on('telemetry')
 def telemetry(sid, data):
@@ -42,10 +43,16 @@ def telemetry(sid, data):
     transformed_image_array = image_array[None, :, :, :]
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
     steering_angle = float(model.predict(transformed_image_array, batch_size=1))
+    # global angles
+    # angles = np.append(angles, steering_angle)
+    # if len(angles) > 10:
+    #     angles = angles[1:]
+    # result_angle = np.ma.average(angles, weights=np.arange(len(angles)))
+    result_angle = steering_angle
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
-    throttle = 0.2
-    print(steering_angle, throttle)
-    send_control(steering_angle, throttle)
+    throttle = 0.2 - abs(result_angle)*0.1
+    print(result_angle, throttle)
+    send_control(result_angle, throttle)
 
 
 @sio.on('connect')
