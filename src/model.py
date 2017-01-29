@@ -7,7 +7,6 @@ import argparse
 import json
 import csv
 import numpy as np
-import pandas as pd
 from data import gen_data
 
 from keras.models import Sequential
@@ -21,35 +20,33 @@ def get_model(time_len=1):
 
   model = Sequential()
 
-  model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same", input_shape=(row, col, ch)))
+
+  model.add(Convolution2D(24, 5, 5, subsample=(2, 2), border_mode="valid", input_shape=(row, col, ch)))
   model.add(ELU())
-  model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
+  model.add(Convolution2D(36, 5, 5, subsample=(2, 2), border_mode="valid"))
   model.add(ELU())
-  model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
+  model.add(Convolution2D(48, 5, 5, subsample=(2, 2), border_mode="valid"))
+  model.add(ELU())
+
+  model.add(Convolution2D(64, 3, 3, subsample=(1, 1), border_mode="valid"))
+  model.add(ELU())
+  model.add(Convolution2D(64, 3, 3, subsample=(1, 1), border_mode="valid"))
+  model.add(ELU())
+
   model.add(Flatten())
-  model.add(Dropout(.2))
-  model.add(ELU())
-  model.add(Dense(512))
+
+  model.add(Dense(100))
   model.add(Dropout(.5))
   model.add(ELU())
-  model.add(Dense(1))
+  model.add(Dense(50))
+  model.add(Dropout(.5))
+  model.add(ELU())
+  model.add(Dense(10))
+  model.add(Dropout(.5))
+  model.add(ELU())
 
 
-  # model.add(Convolution2D(24, 5, 5, activation='relu', border_mode='valid', subsample=(2,2), input_shape=(row, col, ch)))
-  # model.add(Convolution2D(36, 5, 5, activation='relu', border_mode='valid', subsample=(2,2)))
-  # model.add(Convolution2D(48, 5, 5, activation='relu', border_mode='valid', subsample=(2,2)))
-  # model.add(Convolution2D(64, 3, 3, activation='relu', border_mode='valid', subsample=(1,1)))
-  # model.add(Convolution2D(64, 3, 3, activation='relu', border_mode='valid', subsample=(1,1)))
-  # model.add(Flatten())
-  # model.add(Dense(1164, activation='relu'))
-  # model.add(Dropout(.2))
-  # model.add(Dense(100, activation='relu'))
-  # model.add(Dropout(.5))
-  # model.add(Dense(50, activation='relu'))
-  # model.add(Dropout(.5))
-  # model.add(Dense(10, activation='relu'))
-  # model.add(Dropout(.5))
-  # model.add(Dense(1))
+  model.add(Dense(1, activation='tanh', name='output'))
 
   optimizer = Adam(lr=0.001)
   model.compile(optimizer=optimizer, loss="mse")
@@ -59,8 +56,7 @@ def get_model(time_len=1):
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Steering angle model trainer')
-  parser.add_argument('--epoch', type=int, default=5, help='Number of epochs.')
-  parser.add_argument('--epochsize', type=int, default=0, help='How many frames per epoch.')
+  parser.add_argument('--epoch', type=int, default=15, help='Number of epochs.')
   args = parser.parse_args()
 
   with open('data/driving_log.csv', 'r') as f:
@@ -68,20 +64,13 @@ if __name__ == "__main__":
 
   np.random.shuffle(driving_log)
 
-  train_proportion = 0.8
+  train_proportion = 0.9
   train_n = int(train_proportion*len(driving_log))
 
   driving_log_train = driving_log[:train_n]
   driving_log_valid = driving_log[train_n:]
 
-
-  epochsize = args.epochsize
-  if args.epochsize == 0:
-    epochsize = len(driving_log)
-
-  if epochsize > len(driving_log):
-    print("Epoch must be less than {}".format(len(driving_log)))
-    quit()
+  epochsize = len(driving_log)
 
   model = get_model()
   model.fit_generator(
