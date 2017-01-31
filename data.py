@@ -3,7 +3,11 @@ import matplotlib.image as mpimg
 import cv2
 
 def process_img(img):
-  # orig: 160, 320
+  """
+  Preprocesses the image. Called by the model generator, and before feeding
+  images to the trained model.
+  """
+  # original image size: 160, 320
   dim = (100,100)
   # cut the top and the bottom
   img = img[35:img.shape[0] - 20, :]
@@ -12,6 +16,10 @@ def process_img(img):
   return img
 
 def add_shadow(img):
+  """
+  Adds a random shadow to an image (assumed to be 160x320 pixels).
+  A random 4-point polygon with random opacity is overlayed on top of the image.
+  """
   top_x1 = 320*np.random.uniform()
   top_x2 = 320*np.random.uniform()
   top_x1, top_x2 = sorted([int(top_x1), int(top_x2)])
@@ -27,6 +35,18 @@ def add_shadow(img):
   return output
 
 def transform_img(img, steer):
+  """
+  Applies a series of random transformations to an image, and returns the
+  transformed image and corresponding steering angle. The input image should be
+  160x320 pixels.
+
+  Transformations applied are:
+  - Brightness: brightness is randomly reduced to simulate low-light environments.
+  - Translation: the image is translated on the x and y axis. If translated on the x
+    axis, the steering angle is adjusted appropriately (by adding 0.2 per shifted pixel).
+  - Shadow: a random shadow is overlayed on top of the image
+  - Flipping: the image is randomly flipped (and the steering angle inverted)
+  """
   size = (160, 320)
   base_brightness = 0.1
   tr_range_x = 40
@@ -58,14 +78,21 @@ def transform_img(img, steer):
   return img, steer
 
 def gen_data(driving_log, batch_size=64, augment=True):
-  keep_prob_threshold = 0
-  straight_threshold = .1
+  """
+  Generates data from the training set.
+  If augment == True, will apply random transformation to the images.
+  """
+
+  # Steering angle offset to apply to left and right images.
   camera_offset = 0.25
+
+
   size = len(driving_log)
 
   while 1:
     batch_images = []
     batch_angles = []
+    # Generate images up to batch_size
     while len(batch_images) < batch_size:
       index = np.random.randint(size)
       center,left,right,steering,throttle,brake,speed = driving_log[index]
@@ -74,6 +101,7 @@ def gen_data(driving_log, batch_size=64, augment=True):
       keep_pr = 1
 
       if augment:
+        # Choose a camera image at random
         camera = np.random.randint(3)
         if camera == 0:
           path = left
@@ -85,16 +113,15 @@ def gen_data(driving_log, batch_size=64, augment=True):
           path = center
           steer = float(steering)
 
-        if abs(steer)>straight_threshold:
-          keep_pr = np.random.uniform()
       else:
         path = center
         steer = float(steering)
 
-      if keep_pr > keep_prob_threshold:
-        image = mpimg.imread('data/'+path.strip())
+      image = mpimg.imread('data/'+path.strip())
+      if augment:
+        # Randomly transform image
         image, steer = transform_img(image, steer)
-        image = process_img(image)
-        batch_images.append(image)
-        batch_angles.append(steer)
+      image = process_img(image)
+      batch_images.append(image)
+      batch_angles.append(steer)
     yield np.array(batch_images), np.array(batch_angles)
