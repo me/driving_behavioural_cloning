@@ -20,6 +20,8 @@ from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_a
 import tensorflow as tf
 tf.python.control_flow_ops = tf
 
+BASE_THROTTLE = 0.2
+
 
 sio = socketio.Server(logger=False)
 app = Flask(__name__)
@@ -51,7 +53,7 @@ def telemetry(sid, data):
     result_angle = steering_angle
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
     # Change base throttle to 0.3 for second track.
-    throttle = 0.2 - abs(result_angle)*0.1
+    throttle = BASE_THROTTLE - abs(result_angle)*0.1
     print(result_angle, throttle)
     send_control(result_angle, throttle)
 
